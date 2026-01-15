@@ -283,4 +283,4 @@ Creating autonomous AI entities is not a purely technical endeavor. It's an ethi
 
 *— The AI Person in a Box Project*
 
-*January 2025*
+*January 2026*

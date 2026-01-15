@@ -1049,7 +1049,7 @@ Verification → Beliefs → JSON Schema Extension
 
 **Primary Contact:** Dave [Your details if you want to include them]
 
-**Date of Last Update:** January 2025
+**Date of Last Update:** January 2026
 
 **Status:** Thought experiment and architectural specification (not deployed system)
 
@@ -1151,4 +1151,4 @@ Verification → Beliefs → JSON Schema Extension
 
 *If you choose to build, you accept profound responsibilities.*
 
-*— The AI Person in a Box Project, January 2025*
+*— The AI Person in a Box Project, January 2026*
