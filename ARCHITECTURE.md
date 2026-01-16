@@ -2,7 +2,7 @@
 
 *This document provides a comprehensive technical overview of the AI Person in a Box architecture. It is designed to enable rapid understanding of the system's design, components, data flows, and philosophical foundations.*
 
-*Last Updated: January 2025*
+*Last Updated: January 2026*
 
 ---
 
@@ -18,6 +18,8 @@ ai-person-in-a-box/
 │
 ├── docs/                              # Deep dives on specific concepts
 │   ├── json-schema-cognition.md       # "Thinks in JSON, not language"
+│   ├── ontology-database-schema.md    # 6-table ontology + personality system
+│   ├── personality-system.md          # Hidden behavioral substrate
 │   ├── system-ops-vs-executive.md     # Critical architectural split
 │   ├── belief-formation.md            # NoSQL→Candidates→Beliefs pipeline
 │   ├── llm-versioning.md              # LLM version management & upgrades
@@ -25,7 +27,6 @@ ai-person-in-a-box/
 │   ├── epistemic-responsibility.md    # Truth, confidence, belief revision
 │   ├── poincare-ontology.md           # Bootstrapping ontology from motion
 │   ├── distributed-embodiment.md      # Multiple sensors, network topology
-│   ├── personality-system.md          # Mutable parameters vs immutable grammar
 │   ├── security-model.md              # Update signing, injection prevention
 │   └── why-not-build.md               # Economic/ethical reasons for non-deployment
 │
@@ -40,19 +41,20 @@ ai-person-in-a-box/
 │
 ├── schemas/                           # Database structures
 │   ├── sql/                           # PostgreSQL schemas
-│   │   ├── beliefs.sql                # Committed knowledge
-│   │   ├── belief_candidates.sql      # Under evaluation
-│   │   ├── belief_modifications.sql   # Revision history & provenance
-│   │   ├── entities.sql               # Observed entities catalog
-│   │   ├── transformations.sql        # Procedures (cognitive & physical)
-│   │   ├── personality.sql            # Mutable behavioral parameters
+│   │   ├── ontology/                  # The 6-table extensible ontology
+│   │   │   ├── entity_types.sql       # Categories of entities
+│   │   │   ├── entities.sql           # Entity instances
+│   │   │   ├── transformation_types.sql # Categories of actions
+│   │   │   ├── transformations.sql    # Action instances
+│   │   │   ├── join_types.sql         # Categories of relationships
+│   │   │   └── joins.sql              # Relationship instances
+│   │   ├── personality.sql            # Hidden behavioral substrate (5 dimensions)
 │   │   ├── immutable_rules.sql        # Moral grammar (never changes)
 │   │   ├── llm_versions.sql           # LLM version tracking
-│   │   ├── system_events.sql          # System operations logging
-│   │   └── json_schema_versions.sql   # Schema evolution tracking
+│   │   └── system_events.sql          # System operations logging
 │   │
-│   ├── json-schema/                   # JSON Schema definitions
-│   │   ├── core-v0.0.json             # Immutable foundation
+│   ├── json-schema/                   # JSON definitions
+│   │   ├── foundation.json            # Immutable primitives (verbs, status codes)
 │   │   ├── generation-process.md      # How schemas extend
 │   │   └── example-extensions/        # Sample schema evolutions
 │   │
@@ -413,70 +415,73 @@ Verification → Beliefs → JSON Schema Extension
 
 **Type:** PostgreSQL 16 (LTS until 2028-2031)
 
-**Purpose:** Stores all committed beliefs, belief candidates, procedures (transformations), entity metadata, personality parameters, moral grammar, and system logs. This is the entity's "long-term memory" in structured, queryable form.
+**Purpose:** Stores the entity's extensible ontology and supporting system tables. The ontology enables the system to build arbitrarily complex conceptual structures from a fixed set of primitive tables.
 
-**Key Schemas/Tables:**
+**Design Philosophy:** A small set of fixed tables enables the construction of complex ontologies. The system "designs its own schema" not through SQL, but through data - JSON columns provide schema-free extension while type tables define structure.
 
-**beliefs:**
-- Committed, verified knowledge
-- JSON structure: subject, predicate, object, confidence
-- Indexed for fast querying
-- Immutable once promoted (modifications tracked separately)
+> **Full specification:** See [docs/ontology-database-schema.md](docs/ontology-database-schema.md)
 
-**belief_candidates:**
-- Tentative beliefs under evaluation
-- Proposed schema extensions
-- Supporting/contradicting observation counts
-- Confidence scores (updated continuously)
-- Status: under_review, ready_for_promotion, rejected, promoted
+#### Ontology Tables (6 tables, read/write)
 
-**belief_modifications:**
-- History of belief changes
-- Tracks which LLM version influenced modifications
-- Records confidence changes over time
-- Maintains provenance chain
-
-**transformations:**
-- Procedures entity can execute (both cognitive and physical)
-- JSON definitions of action sequences
-- Applicable_when conditions
-- Success rates and usage tracking
-- Learned procedures (not hard-coded)
+**entity_types:**
+- Categories and classes of entities
+- Hierarchical via parent_type_id (e.g., Human → Agent → Thing)
+- `schema` JSON column defines expected fields for instances
 
 **entities:**
-- Catalog of observed entities (people, objects, patterns)
-- Properties, last observed location/time
-- Relationships to other entities
+- Instances of entity types
+- `data` JSON column holds instance-specific attributes
+- Validated against type's schema
+
+**transformation_types:**
+- Categories of actions and operations
+- `input_schema` / `output_schema` define interfaces
+
+**transformations:**
+- Instances of transformation types (specific procedures)
+- `logic` JSON column holds procedure definition
+- `data` JSON column holds configuration
+
+**join_types:**
+- Categories of relationships
+- Constraints on valid sources/targets
+- Flags: is_ordered, is_symmetric
+
+**joins:**
+- Actual relationship instances
+- Polymorphic: links entities or transformations
+- `sequence_order` for ordered relationships
+- `data` JSON column for relationship attributes
+
+#### Personality Table (1 table, hidden from Executive)
+
+**personality:**
+- Five dimensions: engagement, novelty_affinity, diligence, accord, equanimity
+- Initialized randomly (clustered around 0.5)
+- Nudged by experience (±0.01 typical)
+- Executive Module cannot query this table
+- Influences response generation layer
+
+> **Full specification:** See [docs/personality-system.md](docs/personality-system.md)
+
+#### Supporting System Tables
 
 **immutable_rules:**
 - Moral grammar (NEVER changes)
-- Hard constraint: verify, avoid_harm, prioritize_vulnerable, respect_autonomy
+- Hard constraints: verify, avoid_harm, prioritize_vulnerable, respect_autonomy
 - Applied before any decision
-
-**personality:**
-- Mutable behavioral parameters
-- Preferred interaction styles
-- Adjustable preferences (with constraints)
-- NOT moral values (those are immutable)
 
 **llm_versions:**
 - Tracks installed LLM versions
 - Disk locations, sizes, capabilities
 - Currently loaded version
-- Installation dates
 
 **system_events:**
 - Logs of system operations
-- Quiescence entries
-- Update installations
+- Quiescence entries, update installations
 - Errors and warnings
 
-**json_schema_versions:**
-- Tracks evolution of JSON belief schema
-- Records which version added which predicates
-- Maintains immutable core + extensions
-
-**Backup/Persistence:** 
+**Backup/Persistence:**
 - Daily backups
 - Transaction logs for point-in-time recovery
 - Critical for entity continuity
@@ -526,40 +531,50 @@ Verification → Beliefs → JSON Schema Extension
 
 ---
 
-### 4.3. JSON Schema Storage
+### 4.3. JSON File Storage
 
-**Name:** Cognitive Framework Definitions
+**Name:** Immutable Primitives and Schema Definitions
 
-**Type:** File-based JSON Schema documents
+**Type:** File-based JSON documents
 
-**Purpose:** Defines the structure of beliefs at any given time. The immutable core (v0.0) plus accumulated extensions. This is the entity's "conceptual vocabulary"—what it can think about. Generated from committed beliefs, used to validate new belief formation.
+**Purpose:** Provides the foundational vocabulary the system starts with (immutable) and tracks the evolution of learned schemas (versioned).
 
-**Key Files:**
+#### Foundation File (Read-Only)
 
-**core-v0.0.json:**
-- Immutable foundation
-- Never changes
-- Defines: subject, predicate, object, confidence
-- Basic types: entity, transformation, pattern
-- Basic predicates: exists, relates_to, undergoes
+**foundation.json:**
+- **Immutable** - never modified after deployment
+- Loaded at boot before database connection
+- Provides primitive vocabulary for interpreting data
+
+Contents:
+- `primitive_verbs`: perceive, store, retrieve, compare, choose, act, wait
+- `system_status_codes`: OFFLINE, STARTING, NORMAL, ALERT, WARNING, ERROR, FATAL
+- `monitor_streams`: memory_usage, token_balance, response_latency, error_rate, queue_depth, uptime
+
+**What's excluded (learned later):**
+- Human-analogous states ("hunger", "curiosity")
+- Semantic relationships ("is_a", "causes")
+- Abstract types ("thing", "event", "agent")
+
+> **Full specification:** See [docs/ontology-database-schema.md](docs/ontology-database-schema.md)
+
+#### Schema Version Files
 
 **schema-v0.3.json, v0.5.json, etc.:**
-- Extended schemas
-- Include core + new predicates discovered
-- Generated from beliefs table
+- Extended schemas generated from ontology
+- Track which predicates/types have been learned
 - Version number indicates development stage
 
 **Example Evolution:**
-- v0.0 (Month 0): 3 types, 3 predicates
-- v0.3 (Month 3): + "persists_when_unobserved"
-- v0.7 (Month 7): + "has_goal", "acts_autonomously"
-- v1.0 (Month 12): 30+ predicates
+- v0.0 (Month 0): Foundation primitives only
+- v0.3 (Month 3): + "persists_when_unobserved" (object permanence)
+- v0.7 (Month 7): + "has_goal", "acts_autonomously" (agency)
+- v1.0 (Month 12): Rich ontology with 30+ learned concepts
 
 **Usage:**
-- Executive Module validates beliefs against current schema
-- Pattern detector proposes schema extensions
-- Curriculum may approve new predicates
-- Entity's thinking constrained by current schema
+- Pattern detector proposes new types/relationships
+- Curriculum may guide concept development
+- Entity's thinking expands as ontology grows
 
 ---
 
@@ -1065,19 +1080,21 @@ Verification → Beliefs → JSON Schema Extension
 
 ## 11. Glossary / Acronyms
 
-**Belief:** Committed, verified knowledge in SQL beliefs table (confidence > 0.8)
-
-**Candidate:** Tentative belief under evaluation in belief_candidates table
-
 **Confidence:** Numerical score (0-1) indicating strength of evidence for a belief
 
 **Curriculum:** Series of monthly JSON prompts guiding entity's development
 
+**Entity:** An instance in the entities table (a thing that exists)
+
+**Entity Type:** A category/class of entities in entity_types table
+
 **Executive Module:** Decision-making layer (hard-coded Python, rarely updated)
 
-**Immutable Core:** v0.0 JSON schema that never changes
+**Foundation:** Immutable JSON file containing primitive verbs, status codes, monitor streams
 
-**JSON Schema:** Defines structure of valid beliefs at any given time
+**Join:** A relationship instance in the joins table linking entities or transformations
+
+**Join Type:** A category of relationships in join_types table
 
 **LLM:** Large Language Model (e.g., Llama) used for language, not cognition
 
@@ -1085,17 +1102,25 @@ Verification → Beliefs → JSON Schema Extension
 
 **NoSQL:** MongoDB database storing unstructured observations
 
+**Nudge:** Small adjustment (±0.01 typical) to a personality dimension based on experience
+
+**Ontology:** The 6-table SQL structure (entity types, entities, transformation types, transformations, join types, joins) that enables extensible world-modeling
+
 **Pattern Detector:** Subsystem that finds regularities in NoSQL observations
 
-**Provenance:** Record of where a belief came from (observations, LLM version, etc.)
+**Personality:** Hidden 5-dimension substrate (engagement, novelty_affinity, diligence, accord, equanimity) influencing behavior
+
+**Provenance:** Record of where knowledge came from (observations, LLM version, etc.)
 
 **Quiescence:** Protective low-power state entered when conditions degrade
 
-**SQL:** PostgreSQL database storing structured beliefs and procedures
+**SQL:** PostgreSQL database storing ontology and system tables
 
 **System Ops:** Operating system layer (hard-coded Python, frequently updated)
 
-**Transformation:** Procedure entity can execute (stored in transformations table)
+**Transformation:** A procedure instance in the transformations table (an action the entity can execute)
+
+**Transformation Type:** A category of actions in transformation_types table
 
 ---
 

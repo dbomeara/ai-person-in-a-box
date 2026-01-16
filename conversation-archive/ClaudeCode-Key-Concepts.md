@@ -286,6 +286,11 @@ def decide_action(situation):
 
 ---
 
+## The Executive Module
+The decision makinng module is the most important. I'm hoping it can be kept relatively simple. For actions, It queries the database, finds which of its values and beliefs affect the current situation, receives a JSON response with multiple weighted values, and makes a decision. Maybe the JSON presents it with a flow chart of possible steps, and it slowly moves through those steps. For beliefs, it examines the raw data that has been dumped in its NoSQL databae, searches for patterns, tries to express those with terms already in its JSON schema, tentatively creating one new term at a time, and puts those into a candidate beliefs table. On a regular basis, it tests all tentative entries in the candidate beliefs table against experience, and places the most confirmed ideas in the beliefs table. For entities, use of MemberOf fields can create complex hierarchical ontologies, transformations can be strung together into complex flow charts of events and actions. Except for the core morality built into the immutable part of its JSON schema, most of its world view--the extensible part of its JSON schema-- can be modified by further experience.  Thus most of its logic, except for the key concepts that form its moral grammar, is constructed out of experience and stored in the relational SQL database. The entity begins its existence unaware of those basic JSON verbs. Only with prompting does it discover  "observation is possible", "prediction is possible", "decision is possible", "error is possible" and only later "I observe, predict, decide and sometimes am wrong".
+
+--
+
 ## Conclusion
 
 This thought experiment demonstrates:
