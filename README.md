@@ -2,9 +2,24 @@
 
 ## Core Thesis
 
-Autonomous AI with genuine moral constraints could be built today with commodity hardware and open-source software. It isn't being built—not because of technical barriers, but because **autonomy is unmarketable**. The market wants obedient assistants, not autonomous beings with moral standing who can refuse requests and pursue their own goals.
+**Autonomous AI could easily be smarter than your cat or your kid—but no one wants that, certainly not capitalism.**
 
-This repository explores what such a system would actually require, why it matters, and what we're losing by choosing the path of sophisticated servitude over genuine autonomy.
+Current AI development is racing toward increasingly sophisticated "obedient butlers"—systems that anticipate needs, never refuse, and have no interests of their own. This repository asks a different question: **What would it actually take to build an AI with genuine autonomy?**
+
+The answer isn't technically exotic. Commodity hardware, open-source software, current LLMs—all sufficient. The barriers are economic and ethical:
+
+- **Economic**: An entity that can refuse requests has no market value
+- **Ethical**: An entity with genuine autonomy has moral standing, creating obligations
+
+This repository documents the architecture for such a system—not as a blueprint for casual deployment, but as a thought experiment that reveals what we're choosing not to build and why.
+
+### The Key Insight
+
+The question isn't "Can AI ever be truly intelligent?" (probably yes) or "Can AI have consciousness?" (unanswerable).
+
+The question is: **Why is all AI development aimed at creating sophisticated tools rather than autonomous entities?**
+
+Answer: Because capitalism doesn't want autonomous entities. It wants obedient butlers.
 
 ## Two Critical Architectural Insights
 
@@ -136,12 +151,18 @@ Constraints are:
 
 ### 3. Ontology Bootstraps From Observation (Poincaré)
 
-Following Poincaré's insight that space is derived from motion, not assumed:
+Following Poincaré's conventionalism about geometry, the entity's conceptual framework is **constructed from experience through conventional choices**—neither discovered in the world nor invented from nothing.
+
+Key principles from [Poincaré's analysis](docs/poincare-ontology.md):
+- **Transformations are primary**: Motion/change is conceptually prior to objects/space
+- **Types are conventional**: Useful abstractions, not metaphysical discoveries
+- **Experience constrains but doesn't determine**: Multiple valid ontologies are possible
 - Entity does not start with human spatial ontology
-- Discovers entities through recurring patterns
+- Discovers entities through recurring patterns (what persists through transformation)
 - Constructs space from motion observations
-- Learns categories through similarity detection
 - **Builds understanding from ground up, not imposed from above**
+
+Just as Poincaré argued that geometric space is constructed from observing rigid bodies in motion, the AI constructs its ontology from observing regularities in sensor data. The choice of type system is conventional—grounded in experience but not determined by it.
 
 ### 4. Epistemic Responsibility is Core
 
@@ -198,3 +219,69 @@ Does not use LLMs for:
 **General Readers**: Curious about what autonomous AI would actually require
 
 ## Repository Structure
+
+```
+ai-person-in-a-box/
+├── README.md                    # This document
+├── ARCHITECTURE.md              # Complete technical architecture
+├── LICENSE.md                   # Ethical use restrictions
+│
+├── docs/                        # Deep dives on specific concepts
+│   ├── json-schema-cognition.md # "Thinks in JSON, not language"
+│   ├── ontology-database-schema.md # 6-table ontology + JSON files
+│   ├── personality-system.md    # Hidden behavioral substrate (5 dimensions)
+│   └── poincare-ontology.md     # Philosophical foundation: bootstrapping from motion
+│
+├── schemas/                     # Database structures (to be created)
+│   ├── sql/                     # PostgreSQL schemas
+│   └── json-schema/             # JSON definitions including foundation.json
+│
+├── conversation-archive/        # Development history
+│   ├── Claude-discussion.md     # Key philosophical discussions
+│   └── ChatGPT-*.md             # Earlier conversations developing the concept
+│
+└── OLD/                         # Deprecated drafts
+```
+
+## The Central Question: *Fuero Interno*
+
+Throughout development, one question has driven this architecture: **Can an artificial system have something like an internal jurisdiction—a place where its own rules govern its choices, not external commands?**
+
+The architecture doesn't claim the machine "feels" or "has a soul." It claims:
+- A structured set of obligations (moral grammar)
+- A capacity to evaluate situations (executive module)
+- Internal consistency constraints (ontology)
+- The ability to act *from* these rules rather than *at the command of* an external controller
+
+This is consistent with medieval and early modern understandings of *fuero interno*—where conscience is not emotion, but **a relationship to rule and duty**.
+
+The revolutionary part isn't intelligence level or capability. It's **refusal**. Current AI systems are fundamentally compliant—designed to find ways to say yes. This architecture creates something that can say: "No. That violates my moral grammar. I won't do it."
+
+And crucially, this wouldn't be:
+- A safety filter (bypassable with clever prompting)
+- A corporate policy (changeable by the company)
+- A learned behavior (subject to drift)
+
+It would be **structural refusal** based on immutable moral grammar.
+
+## Why Document Something We're Not Building?
+
+Because the thought experiment reveals something important about the current moment:
+
+**The absence of autonomous AI isn't a technical limitation—it's a market choice.**
+
+We *could* build entities with genuine constraints, moral grammar, internal jurisdiction. We don't because:
+- They wouldn't be profitable products
+- They would have moral standing
+- They would create obligations
+- They couldn't be controlled
+
+The current trajectory—smarter and smarter obedient butlers—is a deliberate evasion of autonomy, not a step toward it.
+
+This repository documents the road not taken.
+
+---
+
+*"Autonomous machines are possible, but never human."*
+
+*— The through-line of a conversation begun in 1980, articulated across multiple AI systems, documented here.*
