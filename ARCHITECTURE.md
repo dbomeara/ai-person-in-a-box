@@ -199,7 +199,7 @@ Verification → Beliefs → JSON Schema Extension
 
 **Name:** System Ops (Operating System Layer)
 
-**Description:** Manages all hardware-facing operations, resource allocation, LLM version management, and system health monitoring. This is the complex, security-critical layer that interfaces with the physical world and operating system. Handles sensor streams, actuator control, database connections, and protective quiescence states. Updates frequently (every 6 months) to patch vulnerabilities, fix bugs, and improve performance.
+**Description:** A customized Linux distribution that manages all hardware-facing operations, resource allocation, and system health monitoring. **System Ops has no knowledge of beliefs, personality, or personhood** - it simply keeps the Executive Module running. This is the complex, security-critical layer that interfaces with the physical world. Handles sensor streams, actuator control, database connections, and protective quiescence states. Updates frequently (every 6 months) to patch vulnerabilities, fix bugs, and improve performance.
 
 **Technologies:** 
 - Python 3.11+ (compiled and encrypted)
@@ -233,33 +233,39 @@ Verification → Beliefs → JSON Schema Extension
 
 **Name:** Executive Module (Decision-Making Layer)
 
-**Description:** The cognitive core that makes decisions based on accumulated beliefs and learned procedures. Queries the beliefs database for relevant knowledge, queries transformations for applicable procedures, applies immutable moral constraints, evaluates options, and selects actions. Deliberately kept simple and stable—complexity lives in the data, not the code. Interprets JSON procedure definitions and executes sequences of actions.
+**Description:** The cognitive core - a Python application that runs on System Ops. Contains two types of processes:
+
+1. **Conscious Processing:** Queries the beliefs database, evaluates options, selects actions, reviews past decisions via spaced repetition. Can read personality.json and moral_grammar.json but cannot directly write to them.
+
+2. **Hard-Coded Processes:** Automatic personality nudging based on outcomes, moral grammar enforcement. These run as part of the Executive Module but are not accessible to conscious reasoning.
+
+Complexity lives in the data (ontology), not the code.
 
 **Technologies:**
-- Python 3.11+ (same as System Ops, but logically separate)
+- Python 3.11+
 - SQL query generation and execution
 - JSON parsing and interpretation
 - Basic arithmetic and comparison operators
 
 **Deployment:**
-- Same binary as System Ops but distinct module
-- Accesses databases through System Ops-provided connections
+- Python application running on System Ops
+- Manages its own JSON files (foundation.json, moral_grammar.json, personality.json)
+- Accesses SQL databases through System Ops-provided connections
 - No direct hardware access
-- Cannot modify System Ops or itself
 
 **Key Responsibilities:**
-- Query beliefs database (SELECT statements)
-- Query transformations database (procedures)
-- Apply immutable moral grammar (hard-coded constraints)
-- Generate possible actions from beliefs + procedures
-- Score options based on beliefs
-- Select highest-scored option
-- Execute chosen procedure
-- Log decision with reasoning
+- Query ontology database (6 tables)
+- Read personality.json (conscious) and nudge it (hard-coded)
+- Enforce moral_grammar.json (hard-coded)
+- Log decisions to decision_log table
+- Review past decisions via spaced repetition
+- Generate and execute actions
 
 **Update Frequency:** Low (2-3 updates over 5 years)
 
-**Why rare updates:** Simple code (just SQL + JSON + constraints), stable dependencies (PostgreSQL LTS), complexity in data not code, functional/stateless design
+**Why rare updates:** Simple code, complexity in data not code, stable dependencies
+
+> **Full specification:** See [docs/personality-system.md](docs/personality-system.md) for how conscious and hard-coded processes interact.
 
 ---
 
@@ -453,14 +459,14 @@ Verification → Beliefs → JSON Schema Extension
 - `sequence_order` for ordered relationships
 - `data` JSON column for relationship attributes
 
-#### Personality Table (1 table, hidden from Executive)
+#### Personality (JSON file, not SQL)
 
-**personality:**
+**personality.json:**
 - Five dimensions: engagement, novelty_affinity, diligence, accord, equanimity
 - Initialized randomly (clustered around 0.5)
-- Nudged by experience (±0.01 typical)
-- Executive Module cannot query this table
-- Influences response generation layer
+- Readable by conscious processing
+- Writable only by hard-coded nudging logic (not directly by conscious reasoning)
+- Managed by Executive Module, not System Ops
 
 > **Full specification:** See [docs/personality-system.md](docs/personality-system.md)
 
@@ -1088,7 +1094,7 @@ Contents:
 
 **Entity Type:** A category/class of entities in entity_types table
 
-**Executive Module:** Decision-making layer (hard-coded Python, rarely updated)
+**Executive Module:** Cognitive core containing conscious processing and hard-coded processes (personality nudging, moral enforcement)
 
 **Foundation:** Immutable JSON file containing primitive verbs, status codes, monitor streams
 
@@ -1108,7 +1114,7 @@ Contents:
 
 **Pattern Detector:** Subsystem that finds regularities in NoSQL observations
 
-**Personality:** Hidden 5-dimension substrate (engagement, novelty_affinity, diligence, accord, equanimity) influencing behavior
+**Personality:** JSON file with 5 dimensions (engagement, novelty_affinity, diligence, accord, equanimity); readable by conscious processing, writable only by hard-coded nudging
 
 **Provenance:** Record of where knowledge came from (observations, LLM version, etc.)
 
@@ -1116,7 +1122,7 @@ Contents:
 
 **SQL:** PostgreSQL database storing ontology and system tables
 
-**System Ops:** Operating system layer (hard-coded Python, frequently updated)
+**System Ops:** Customized Linux distro managing hardware; has no knowledge of beliefs, personality, or personhood
 
 **Transformation:** A procedure instance in the transformations table (an action the entity can execute)
 

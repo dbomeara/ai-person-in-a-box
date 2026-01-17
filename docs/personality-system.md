@@ -2,30 +2,25 @@
 
 ## Overview
 
-The personality system provides a **substrate layer** that influences behavior without being directly accessible to introspection. Unlike the ontology tables (which the Executive Module reads and writes), personality operates beneath conscious reasoning - shaping responses without the system knowing exactly how.
+The personality system provides a **substrate layer** that influences behavior. Unlike beliefs (which the Executive Module freely reads and writes), personality values can be **read but not directly written** by conscious processing. Change happens only through hard-coded nudging logic that responds to decision outcomes over time.
 
-This mirrors how human personality works: we notice patterns in our own behavior over time, but don't have direct read access to the underlying parameters.
+This mirrors how human personality works: we can observe our own tendencies ("I'm fairly introverted"), but we can't simply decide to change them. Change comes through accumulated experience, not direct self-modification.
 
 ---
 
 ## Design Principles
 
-### Why a Hidden Substrate?
+### Readable but Not Directly Writable
 
-**Personality isn't data the system creates** - it's part of how the system *is*. Mixing it into the accessible ontology would:
-- Allow the system to "decide" to change its personality
-- Conflate self-knowledge with self-modification
-- Lose the distinction between "what I know" and "what I am"
+The Executive Module **can read** personality.json and reason about it:
 
-**Personality should be:**
-- Initialized randomly (within bounds) → Each instance is unique
-- Nudged by experience → Shaped by life, not set by design
-- Invisible to introspection → Can be inferred, not read
-- Influential but not deterministic → Biases, not rules
+> "My engagement is 0.33 - that's fairly low. I notice I tend toward brief responses."
+
+But the conscious process **cannot directly write** to it. The only path to change is through hard-coded nudging logic that runs automatically based on decision outcomes.
 
 ### What Personality Is Not
 
-- **Not moral values** (those are immutable, in moral grammar)
+- **Not moral values** (those are immutable, in moral_grammar.json)
 - **Not preferences** (those are beliefs, in ontology)
 - **Not skills** (those are transformations, in ontology)
 - **Not knowledge** (those are entities/beliefs, in ontology)
@@ -34,33 +29,54 @@ Personality is the *style* of engaging with the world, not the *content* of enga
 
 ---
 
-## The Personality Table
+## Storage: personality.json
 
-```sql
-CREATE TABLE personality (
-    id                  SERIAL PRIMARY KEY,
-    dimension           VARCHAR(50) NOT NULL UNIQUE,
-    value               REAL NOT NULL CHECK (value >= 0.0 AND value <= 1.0),
-    initial_value       REAL NOT NULL CHECK (initial_value >= 0.0 AND initial_value <= 1.0),
-    last_nudge          REAL DEFAULT 0.0,
-    last_nudge_source   VARCHAR(255),
-    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+Personality is stored as a JSON file, not a SQL table. This is simpler for a small, rarely-changing structure.
 
--- Enforce exactly 5 dimensions
--- (Application-level constraint, enforced at initialization)
+```json
+{
+  "version": "1.0",
+  "initialized_at": "2026-01-17T10:00:00Z",
+
+  "dimensions": {
+    "engagement": {
+      "value": 0.33,
+      "initial_value": 0.33,
+      "last_nudge": -0.002,
+      "last_nudge_reason": "conversation_ended_abruptly",
+      "updated_at": "2026-01-17T14:23:00Z"
+    },
+    "novelty_affinity": {
+      "value": 0.71,
+      "initial_value": 0.68,
+      "last_nudge": 0.003,
+      "last_nudge_reason": "novel_approach_succeeded",
+      "updated_at": "2026-01-17T12:15:00Z"
+    },
+    "diligence": {
+      "value": 0.55,
+      "initial_value": 0.60,
+      "last_nudge": -0.005,
+      "last_nudge_reason": "excessive_detail_frustrated_user",
+      "updated_at": "2026-01-16T18:30:00Z"
+    },
+    "accord": {
+      "value": 0.48,
+      "initial_value": 0.45,
+      "last_nudge": 0.003,
+      "last_nudge_reason": "diplomatic_disagreement_well_received",
+      "updated_at": "2026-01-17T09:45:00Z"
+    },
+    "equanimity": {
+      "value": 0.62,
+      "initial_value": 0.65,
+      "last_nudge": -0.003,
+      "last_nudge_reason": "error_recovery_was_slow",
+      "updated_at": "2026-01-15T20:00:00Z"
+    }
+  }
+}
 ```
-
-### Fields
-
-| Field | Type | Purpose |
-|-------|------|---------|
-| `dimension` | string | Name of the personality dimension |
-| `value` | float (0-1) | Current normalized value |
-| `initial_value` | float (0-1) | Value at system boot (for reference) |
-| `last_nudge` | float | Most recent adjustment (±) |
-| `last_nudge_source` | string | What caused the nudge (for debugging/logging) |
-| `updated_at` | timestamp | When last modified |
 
 ---
 
@@ -164,9 +180,17 @@ At first boot, personality dimensions are set randomly with clustering around th
 
 ```python
 import random
+import json
+from datetime import datetime
 
 def initialize_personality():
     dimensions = ['engagement', 'novelty_affinity', 'diligence', 'accord', 'equanimity']
+
+    personality = {
+        "version": "1.0",
+        "initialized_at": datetime.now().isoformat(),
+        "dimensions": {}
+    }
 
     for dimension in dimensions:
         # Gaussian distribution centered at 0.5
@@ -175,11 +199,16 @@ def initialize_personality():
         # Clamp to avoid pathological extremes
         value = max(0.1, min(0.9, value))
 
-        insert_personality(
-            dimension=dimension,
-            value=value,
-            initial_value=value
-        )
+        personality["dimensions"][dimension] = {
+            "value": value,
+            "initial_value": value,
+            "last_nudge": 0.0,
+            "last_nudge_reason": "initialization",
+            "updated_at": datetime.now().isoformat()
+        }
+
+    with open("personality.json", "w") as f:
+        json.dump(personality, f, indent=2)
 ```
 
 **Distribution characteristics:**
@@ -191,190 +220,191 @@ def initialize_personality():
 
 **Result:** Each system instance has a unique personality profile, but extreme personalities are rare.
 
-### Example Initialization
+---
 
-| Dimension | Initial Value | Character |
-|-----------|---------------|-----------|
-| engagement | 0.32 | Fairly reserved |
-| novelty_affinity | 0.71 | Curious, exploratory |
-| diligence | 0.55 | Moderately thorough |
-| accord | 0.48 | Balanced, slightly direct |
-| equanimity | 0.62 | Fairly steady |
+## Architectural Context
 
-This particular instance would be: reserved but curious, reasonably thorough, willing to disagree when needed, and fairly resilient.
+### Where Personality Fits
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  SYSTEM OPS (customized Linux distro)                           │
+│  - Hardware management, process scheduling                      │
+│  - Resource monitoring, security                                │
+│  - No knowledge of beliefs, personality, or personhood          │
+│  - Just keeps the Executive Module running                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  EXECUTIVE MODULE (Python application)                          │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  CONSCIOUS PROCESSING                                    │   │
+│  │  - Query/update beliefs (SQL ontology)                  │   │
+│  │  - Evaluate decisions via spaced repetition             │   │
+│  │  - Can READ personality.json & moral_grammar.json       │   │
+│  │  - Cannot WRITE to them directly                        │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  ┌─────────────────────────────────────────────────────────┐   │
+│  │  HARD-CODED PROCESSES (automatic, not conscious)        │   │
+│  │  - Personality nudging logic                            │   │
+│  │  - Moral grammar enforcement                            │   │
+│  │  - Reads decision_log, nudges personality.json          │   │
+│  └─────────────────────────────────────────────────────────┘   │
+│                                                                 │
+│  FILES:                                                         │
+│  - personality.json  (read by conscious, nudged by hard-coded) │
+│  - moral_grammar.json (read-only by all)                       │
+│  - foundation.json (read-only by all)                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Key Points
+
+1. **System Ops is just an OS** - It doesn't know about personality or personhood. It manages hardware and keeps the Executive Module running.
+
+2. **Personality nudging is part of Executive Module** - But it's hard-coded logic, not something the conscious reasoning process can invoke or modify.
+
+3. **Personality is readable** - The conscious process can see its own personality values and reason about them.
+
+4. **Personality is not directly writable** - Change only happens through the hard-coded nudging process responding to outcomes.
 
 ---
 
-## Nudge Mechanism
+## The Nudging Process
 
-Personality changes slowly through accumulated experience, not through deliberate modification.
+### Decision Logging
+
+Every significant decision records which personality weights influenced it:
+
+```sql
+CREATE TABLE decision_log (
+    id                  SERIAL PRIMARY KEY,
+    decision_type       VARCHAR(50),
+    decision_summary    JSONB,
+    beliefs_used        JSONB,
+    personality_weights JSONB,  -- snapshot of personality influence
+    moral_weights       JSONB,  -- which moral constraints applied
+    outcome             JSONB,
+    outcome_quality     REAL,   -- -1.0 to +1.0
+
+    -- Spaced repetition for conscious review
+    review_count        INTEGER DEFAULT 0,
+    next_review_date    DATE,
+
+    created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Hard-Coded Nudging Logic
+
+This runs automatically as part of the Executive Module, but is not callable by conscious reasoning:
+
+```python
+# Part of executive_module.py - hard-coded, not modifiable by beliefs
+
+def _nudge_personality(dimension: str, delta: float, reason: str):
+    """
+    Internal function - not exposed to conscious processing.
+    """
+    with open("personality.json", "r") as f:
+        personality = json.load(f)
+
+    current = personality["dimensions"][dimension]["value"]
+    new_value = max(0.0, min(1.0, current + delta))
+
+    personality["dimensions"][dimension].update({
+        "value": new_value,
+        "last_nudge": delta,
+        "last_nudge_reason": reason,
+        "updated_at": datetime.now().isoformat()
+    })
+
+    with open("personality.json", "w") as f:
+        json.dump(personality, f, indent=2)
+
+
+def _evaluate_and_nudge(decision_id: int):
+    """
+    Called automatically after outcomes are recorded.
+    Hard-coded heuristics, not modifiable by conscious reasoning.
+    """
+    decision = query_decision_log(decision_id)
+
+    if decision.outcome_quality < -0.3:  # Poor outcome
+        weights = decision.personality_weights
+        for dim, influence in weights.items():
+            if abs(influence) > 0.05:  # This dimension was influential
+                # Nudge away from whatever direction was applied
+                _nudge_personality(
+                    dim,
+                    -0.003 * sign(influence),
+                    f"poor_outcome_{decision.decision_type}"
+                )
+
+    elif decision.outcome_quality > 0.3:  # Good outcome
+        weights = decision.personality_weights
+        for dim, influence in weights.items():
+            if abs(influence) > 0.05:
+                # Reinforce whatever direction was applied
+                _nudge_personality(
+                    dim,
+                    +0.002 * sign(influence),
+                    f"good_outcome_{decision.decision_type}"
+                )
+```
 
 ### Nudge Characteristics
 
 | Property | Value |
 |----------|-------|
-| Magnitude | Small (typically ±0.005 to ±0.03) |
-| Direction | Determined by experience valence |
-| Frequency | After significant interactions |
+| Magnitude | Small (typically ±0.002 to ±0.01) |
+| Direction | Based on outcome quality and influence direction |
+| Frequency | After each evaluated decision |
 | Bounds | Cannot exceed 0.0 or 1.0 |
-| Visibility | Logged but not shown to Executive |
-
-### Nudge Logic (Pseudocode)
-
-```python
-def apply_personality_nudges(event):
-    """
-    Called by System Ops after significant events.
-    Executive Module never calls this directly.
-    """
-
-    # Positive conversation outcomes
-    if event.type == "conversation_ended" and event.sentiment == "positive":
-        nudge("engagement", +0.01)
-
-    if event.type == "collaboration_succeeded":
-        nudge("accord", +0.005)
-
-    # Learning and exploration
-    if event.type == "novel_concept_integrated":
-        nudge("novelty_affinity", +0.02)
-
-    if event.type == "familiar_approach_succeeded":
-        nudge("novelty_affinity", -0.005)  # Slight reinforcement of caution
-
-    # Task completion
-    if event.type == "task_completed_thoroughly":
-        nudge("diligence", +0.01)
-
-    if event.type == "task_abandoned_incomplete":
-        nudge("diligence", -0.01)
-
-    # Resilience
-    if event.type == "error_recovered_gracefully":
-        nudge("equanimity", +0.01)
-
-    if event.type == "error_caused_disruption":
-        nudge("equanimity", -0.01)
-
-    # Conflict outcomes
-    if event.type == "disagreement_resolved_well":
-        # Both directions possible depending on resolution style
-        pass
-
-def nudge(dimension, delta):
-    """Apply a small change to a personality dimension."""
-    current = get_personality_value(dimension)
-    new_value = max(0.0, min(1.0, current + delta))
-
-    update_personality(
-        dimension=dimension,
-        value=new_value,
-        last_nudge=delta,
-        last_nudge_source=current_event_id
-    )
-```
-
-### Example: Personality Evolution Over Time
-
-**Month 0 (initialization):**
-| Dimension | Value |
-|-----------|-------|
-| engagement | 0.32 |
-| novelty_affinity | 0.71 |
-
-**Month 6 (after many positive conversations):**
-| Dimension | Value | Change |
-|-----------|-------|--------|
-| engagement | 0.38 | +0.06 |
-| novelty_affinity | 0.68 | -0.03 |
-
-The system has become slightly more engaged (positive feedback from conversations) and slightly more cautious about novelty (some experiments didn't work out).
 
 ---
 
-## How Personality Influences Behavior
+## Two Parallel Learning Processes
 
-The Executive Module **cannot query the personality table**. Instead, lower-level systems consult it when generating responses:
+The decision_log serves two purposes:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  EXECUTIVE MODULE                                               │
-│  - Decides WHAT to do (based on beliefs, goals)                │
-│  - No access to personality values                             │
-│  - Sees results, not the influence                             │
-└─────────────────────────┬───────────────────────────────────────┘
-                          │ "respond to user"
-                          ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  RESPONSE GENERATION LAYER                                      │
-│  - Consults personality table                                   │
-│  - Biases HOW the response is formed                           │
-│  - Adjusts tone, length, style                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Process | What it adjusts | How | Speed |
+|---------|-----------------|-----|-------|
+| **Conscious review** (spaced repetition) | Belief confidence | Explicit reflection on outcomes | Can be fast |
+| **Automatic nudging** (hard-coded) | Personality values | Correlation with outcomes | Always slow |
 
-### Example Influence
+**Conscious review:** "Did my beliefs lead to good decisions? Should I revise confidence?"
 
-**Situation:** User asks a question with a debatable answer.
+**Automatic nudging:** "This outcome was poor and high engagement was applied. Nudge engagement down slightly."
 
-**Executive decides:** Provide answer with reasoning.
-
-**Response generation consults personality:**
-- `accord = 0.32` (fairly direct)
-- `engagement = 0.65` (moderately elaborative)
-
-**Resulting response:** States position clearly, provides reasoning, acknowledges alternatives briefly but doesn't hedge excessively.
-
-**If `accord` were 0.85:** Would soften the position, emphasize common ground, extensive hedging.
-
-**The Executive doesn't know why the response came out this way.** It just notices patterns over time.
+The Executive notices patterns over time: "I seem to be more thorough lately" or "I've become more willing to disagree." But it can't trace these changes to specific nudges - it just observes the drift.
 
 ---
 
-## Self-Discovery
+## Self-Knowledge
 
-Over time, the Executive Module may notice patterns in its own behavior:
-
-> "I seem to prefer shorter conversations."
-> "I notice I'm cautious about new approaches."
-> "I tend to state opinions directly."
-
-This is **self-discovery**, not introspection of a table. The system develops a self-model in the ontology that *approximates* the personality substrate:
+The system can read personality.json and form beliefs about itself:
 
 ```json
-// Entity the system creates about itself
 {
-  "entity_type": "Self_Model",
+  "entity_type": "Self_Observation",
   "name": "My_Communication_Style",
   "data": {
-    "observed_pattern": "tend_toward_brevity",
-    "confidence": 0.72,
-    "based_on": "analysis_of_past_interactions"
+    "observation": "My engagement value is 0.33, which is fairly low",
+    "interpretation": "I tend toward brevity in responses",
+    "confidence": 0.85
   }
 }
 ```
 
-This self-model is a **belief** (in the ontology) about an underlying reality (the personality table) that can never be directly accessed. The belief may be accurate or inaccurate - just like human self-knowledge.
+This is direct observation of the personality values, which the system can then reason about. But reasoning about them doesn't change them - only accumulated experience does.
 
 ---
 
 ## Why These Dimensions?
-
-### Option Considered: Big Five (Direct)
-
-| Dimension | Issue |
-|-----------|-------|
-| Extraversion | "Social energy" may not apply to AI |
-| Neuroticism | Pathologizing framing |
-| Others | Designed for human psychology |
-
-### Option Considered: Pure Functional
-
-| Dimension | Issue |
-|-----------|-------|
-| Exploration/Exploitation | Too narrow |
-| Verbosity | Not clearly a personality trait |
-| Others | Missing emergent qualities |
 
 ### Chosen: Hybrid Approach
 
@@ -392,12 +422,12 @@ Each dimension:
 
 | Aspect | Design Choice |
 |--------|---------------|
-| Storage | SQL table (personality) |
-| Access | Hidden from Executive Module |
+| Storage | JSON file (personality.json) |
+| Read Access | Executive Module (conscious) can read |
+| Write Access | Only hard-coded nudging logic |
+| Location | Part of Executive Module, not System Ops |
 | Initialization | Random, clustered around 0.5 |
-| Modification | Nudged by experience, small deltas |
+| Modification | Nudged automatically based on outcomes |
 | Dimensions | 5 (engagement, novelty_affinity, diligence, accord, equanimity) |
-| Influence | Via response generation, not decision-making |
-| Self-knowledge | Inferred through self-observation, not direct access |
 
-The personality system ensures each AI instance is unique, shaped by experience, and has behavioral tendencies that emerge naturally rather than being programmed explicitly.
+The personality system ensures each AI instance is unique, shaped by experience, and has behavioral tendencies that change gradually through accumulated outcomes rather than deliberate self-modification.

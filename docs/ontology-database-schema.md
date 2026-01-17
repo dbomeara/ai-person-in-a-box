@@ -5,9 +5,11 @@
 This document specifies the database architecture that enables the AI entity to build and extend its own ontology. The design follows a key principle: **a small set of fixed tables enables the construction of arbitrarily complex conceptual structures**.
 
 The system consists of:
-- **6 SQL tables** for the extensible ontology (read/write)
-- **1 SQL table** for personality (hidden from Executive, nudged by experience)
-- **1 JSON file** for immutable primitives (read-only)
+- **6 SQL tables** for the extensible ontology (read/write by conscious processing)
+- **3 JSON files** for foundational structures:
+  - foundation.json (immutable primitives, read-only)
+  - moral_grammar.json (immutable constraints, read-only)
+  - personality.json (readable by conscious processing, writable only by hard-coded nudging logic)
 
 ---
 
@@ -24,9 +26,10 @@ The system consists of:
 **Separation of concerns:**
 | Component | Storage | Access | Purpose |
 |-----------|---------|--------|---------|
-| Primitives | JSON file | Read-only | Vocabulary the system starts with |
-| Personality | SQL table | Hidden from Executive | Behavioral biases |
-| Ontology | SQL tables | Read/Write | Learned knowledge and structure |
+| Foundation | JSON file | Read-only | Primitive vocabulary |
+| Moral Grammar | JSON file | Read-only | Immutable constraints |
+| Personality | JSON file | Read by conscious, written by hard-coded nudging | Behavioral biases |
+| Ontology | SQL tables | Read/Write by conscious processing | Learned knowledge and structure |
 
 **Why JSON for primitives?**
 - Immutability is architectural (file isn't written to)
@@ -324,26 +327,32 @@ CREATE INDEX idx_joins_data ON joins USING GIN(data);
 
 ---
 
-## Personality Table (Special Status)
+## Personality (JSON File, Not SQL)
 
 See [personality-system.md](personality-system.md) for full details.
 
-```sql
-CREATE TABLE personality (
-    id                  SERIAL PRIMARY KEY,
-    dimension           VARCHAR(50) NOT NULL UNIQUE,
-    value               REAL NOT NULL CHECK (value >= 0.0 AND value <= 1.0),
-    initial_value       REAL NOT NULL,
-    last_nudge          REAL DEFAULT 0.0,
-    last_nudge_source   VARCHAR(255),
-    updated_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+Personality is stored as a **JSON file**, not a SQL table. This is simpler and makes the access control clearer.
+
+**File:** `personality.json`
+
+```json
+{
+  "version": "1.0",
+  "initialized_at": "2026-01-17T10:00:00Z",
+  "dimensions": {
+    "engagement": {"value": 0.33, "initial_value": 0.33, "last_nudge": -0.002, ...},
+    "novelty_affinity": {"value": 0.71, ...},
+    "diligence": {"value": 0.55, ...},
+    "accord": {"value": 0.48, ...},
+    "equanimity": {"value": 0.62, ...}
+  }
+}
 ```
 
-**Key differences from ontology tables:**
-- **Hidden from Executive Module** - no direct query access
-- **Nudged, not set** - changes are small deltas from experience
-- **Influences behavior indirectly** - consulted by response generation layer
+**Key characteristics:**
+- **Readable by conscious processing** - The Executive can see its own personality values
+- **Not directly writable** - Change only happens through hard-coded nudging logic
+- **Part of Executive Module** - Not managed by System Ops (which is just an OS)
 
 ---
 
@@ -351,25 +360,17 @@ CREATE TABLE personality (
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  FOUNDATION (Read-Only)                                         │
-│  schemas/json-schema/foundation.json                            │
-│  - primitive_verbs                                              │
-│  - system_status_codes                                          │
-│  - monitor_streams                                              │
+│  JSON FILES (Executive Module manages these)                    │
+│                                                                 │
+│  foundation.json         (Read-only - immutable primitives)     │
+│  moral_grammar.json      (Read-only - immutable constraints)    │
+│  personality.json        (Read by conscious, nudged by hard-coded)
 └─────────────────────────────────────────────────────────────────┘
                               │
-                              │ referenced by
+                              │ inform
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  PERSONALITY (Hidden, Nudged)                                   │
-│  personality table                                              │
-│  - engagement, novelty_affinity, diligence, accord, equanimity  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              │ influences
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│  ONTOLOGY (Read/Write)                                          │
+│  SQL ONTOLOGY (Read/Write by conscious processing)              │
 │                                                                 │
 │  ┌─────────────┐    ┌─────────────────────┐    ┌────────────┐  │
 │  │ EntityTypes │    │ TransformationTypes │    │ JoinTypes  │  │
@@ -386,6 +387,15 @@ CREATE TABLE personality (
 │         ▲                      ▲                      │         │
 │         └──────────────────────┴──────────────────────┘         │
 │                         connected by                            │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              │ decisions logged to
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  decision_log table (SQL)                                       │
+│  - Records decisions with personality/moral/belief weights      │
+│  - Used by conscious processing for spaced repetition review    │
+│  - Used by hard-coded logic for personality nudging             │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
