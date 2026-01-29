@@ -164,7 +164,17 @@ Key principles from [Poincaré's analysis](docs/poincare-ontology.md):
 
 Just as Poincaré argued that geometric space is constructed from observing rigid bodies in motion, the AI constructs its ontology from observing regularities in sensor data. The choice of type system is conventional—grounded in experience but not determined by it.
 
-### 4. Epistemic Responsibility is Core
+### 4. Neurosymbolic Architecture (Marcus-Hofstadter Dialectic)
+
+The architecture embodies a productive tension between two positions:
+- **Gary Marcus**: LLMs cannot create stable symbolic structures; explicit variables and rules are needed
+- **Douglas Hofstadter**: Meaning emerges from cross-domain pattern isomorphisms; analogy-making is the core of creative intelligence
+
+The Executive Module and SQL ontology provide Marcus's symbolic stability. The LLM provides Hofstadter's pattern-isomorphism capability. The result: the system is **symbolically constrained but conceptually unbounded** — its code never changes, but its conceptual world expands indefinitely through the belief pipeline, as the LLM generates proto-symbols that the Executive Module stabilizes as persistent structures.
+
+See [docs/marcus-hofstadter-dialectic.md](docs/marcus-hofstadter-dialectic.md) for the full analysis.
+
+### 5. Epistemic Responsibility is Core
 
 The entity:
 - Distinguishes beliefs (committed knowledge) from candidates (under evaluation)
@@ -173,7 +183,7 @@ The entity:
 - Tracks provenance (which LLM version, which observations)
 - **Knows what it knows, knows what it doesn't know, admits uncertainty**
 
-### 5. LLM is Tool, Not Oracle
+### 6. LLM is Tool, Not Oracle
 
 The entity uses LLMs for:
 - Learning human labels for self-discovered concepts
@@ -230,7 +240,11 @@ ai-person-in-a-box/
 │   ├── json-schema-cognition.md # "Thinks in JSON, not language"
 │   ├── ontology-database-schema.md # 6-table ontology + JSON files
 │   ├── personality-system.md    # Hidden behavioral substrate (5 dimensions)
-│   └── poincare-ontology.md     # Philosophical foundation: bootstrapping from motion
+│   ├── poincare-ontology.md     # Philosophical foundation: bootstrapping from motion
+│   ├── marcus-hofstadter-dialectic.md # Neurosymbolic: symbolic stability + pattern isomorphism
+│   ├── dimensional-collapse.md  # Information flow: high-dim LLM → low-dim decisions
+│   ├── interoception.md         # How the entity knows "how it feels"
+│   └── entity-networking.md     # AI-to-AI communication via vector protocol
 │
 ├── schemas/                     # Database structures (to be created)
 │   ├── sql/                     # PostgreSQL schemas

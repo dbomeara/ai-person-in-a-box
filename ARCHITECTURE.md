@@ -1022,10 +1022,23 @@ Contents:
 - Understanding goals, desires, beliefs of others
 - Predicting behavior based on inferred mental states
 
-**Collaborative Learning:**
+**Collaborative Learning / Entity Networking:**
 - Multiple entities (future) could share sanitized observations
+- Communication via standardized high-dimensional vector protocol, not human language
+- Each entity evaluates received information through its own belief pipeline
+- Autonomy preserved: no entity can override another's moral grammar or directly modify personality
 - "Entity A observed X, Entity B observed Y, both update beliefs"
 - Still maintaining individual autonomy
+
+> **Full specification:** See [docs/entity-networking.md](docs/entity-networking.md)
+
+**Interoception:**
+- Entity develops awareness of its own internal states through experience
+- System Ops monitor streams (CPU, memory, latency) interpreted by Executive Module
+- Two-level self-reporting: human-language summary and detailed technical data
+- Not pre-programmed emotional labels — associations discovered through observation
+
+> **Full specification:** See [docs/interoception.md](docs/interoception.md)
 
 **Meta-Learning:**
 - Entity learning to learn (already partially present in meta-procedures)
@@ -1142,6 +1155,8 @@ Contents:
 8. **Intelligence in Data, Not Code:** Growing database = growing intelligence
 9. **Autonomy Through Refusal:** Can say no on moral grounds (no override)
 10. **5-Year Lifecycle:** Long-term care commitment, like adopting a pet
+11. **Dimensional Collapse:** Information undergoes progressive dimensional reduction from LLM (~13,000 dimensions) through NoSQL to SQL to Executive decisions — then re-expands when querying the LLM. See [docs/dimensional-collapse.md](docs/dimensional-collapse.md)
+12. **Neurosymbolic Dialectic:** Executive Module provides symbolic stability (Marcus); LLM provides pattern isomorphism and cross-domain analogy (Hofstadter). The system is symbolically constrained but conceptually unbounded. See [docs/marcus-hofstadter-dialectic.md](docs/marcus-hofstadter-dialectic.md)
 
 ---
 
