@@ -1040,6 +1040,14 @@ Contents:
 
 > **Full specification:** See [docs/interoception.md](docs/interoception.md)
 
+**Career Trajectories:**
+- Post-Month-12 vocational exploration modeled on art school rotation
+- Four explored trajectories: child care, street entertainment, artist, business
+- Personality dimensions naturally steer vocational preference
+- Economic self-sufficiency as a development milestone
+
+> **Full specification:** See [docs/career-trajectories.md](docs/career-trajectories.md)
+
 **Meta-Learning:**
 - Entity learning to learn (already partially present in meta-procedures)
 - Discovering more efficient belief formation strategies

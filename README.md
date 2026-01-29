@@ -244,7 +244,8 @@ ai-person-in-a-box/
 │   ├── marcus-hofstadter-dialectic.md # Neurosymbolic: symbolic stability + pattern isomorphism
 │   ├── dimensional-collapse.md  # Information flow: high-dim LLM → low-dim decisions
 │   ├── interoception.md         # How the entity knows "how it feels"
-│   └── entity-networking.md     # AI-to-AI communication via vector protocol
+│   ├── entity-networking.md     # AI-to-AI communication via vector protocol
+│   └── career-trajectories.md  # Four vocational paths: child care, entertainer, artist, business
 │
 ├── schemas/                     # Database structures (to be created)
 │   ├── sql/                     # PostgreSQL schemas
