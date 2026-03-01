@@ -1,0 +1,47 @@
+{
+  "_comment": "IMMUTABLE. Loaded at boot before database connection. Never written to by any system component. Provides the vocabulary the entity needs to interpret its own status codes before it has learned anything.",
+  "version": "1.0",
+
+  "primitive_verbs": [
+    {"id": "perceive",  "description": "Receive input from a sensor or stream"},
+    {"id": "store",     "description": "Write to memory (NoSQL observation or SQL belief)"},
+    {"id": "retrieve",  "description": "Read from memory by query"},
+    {"id": "compare",   "description": "Evaluate the difference between two structures"},
+    {"id": "choose",    "description": "Select one option from a scored set"},
+    {"id": "act",       "description": "Produce output (speech, motor, API call)"},
+    {"id": "wait",      "description": "Suspend until a condition is satisfied"}
+  ],
+
+  "system_status_codes": [
+    {"id": "OFFLINE",   "severity": 0, "description": "Required resource unavailable; cannot proceed"},
+    {"id": "STARTING",  "severity": 1, "description": "Initializing; not yet operational"},
+    {"id": "NORMAL",    "severity": 2, "description": "All parameters within optimal ranges"},
+    {"id": "ALERT",     "severity": 3, "description": "Parameter approaching threshold; monitor closely"},
+    {"id": "WARNING",   "severity": 4, "description": "Parameter exceeded threshold; corrective action needed"},
+    {"id": "ERROR",     "severity": 5, "description": "Operation failed; may be recoverable"},
+    {"id": "FATAL",     "severity": 6, "description": "System integrity compromised; shutdown required"}
+  ],
+
+  "monitor_streams": [
+    {"id": "memory_usage",      "type": "numeric", "unit": "percent",  "normal_range": [0, 80],  "warning_threshold": 85,  "fatal_threshold": 97},
+    {"id": "cpu_temperature",   "type": "numeric", "unit": "celsius",  "normal_range": [0, 75],  "warning_threshold": 85,  "fatal_threshold": 95},
+    {"id": "cpu_load",          "type": "numeric", "unit": "percent",  "normal_range": [0, 85],  "warning_threshold": 95,  "fatal_threshold": null},
+    {"id": "token_balance",     "type": "numeric", "unit": "count",    "normal_range": [5000, null], "warning_threshold": 2000, "fatal_threshold": 500},
+    {"id": "response_latency",  "type": "numeric", "unit": "ms",       "normal_range": [0, 1500],"warning_threshold": 3000, "fatal_threshold": null},
+    {"id": "error_rate",        "type": "numeric", "unit": "percent",  "normal_range": [0, 2],   "warning_threshold": 5,   "fatal_threshold": 20},
+    {"id": "queue_depth",       "type": "numeric", "unit": "count",    "normal_range": [0, 10],  "warning_threshold": 20,  "fatal_threshold": 50},
+    {"id": "uptime",            "type": "numeric", "unit": "seconds",  "normal_range": [0, null],"warning_threshold": null,"fatal_threshold": null},
+    {"id": "disk_free",         "type": "numeric", "unit": "percent",  "normal_range": [20, 100],"warning_threshold": 10,  "fatal_threshold": 3}
+  ],
+
+  "log_source_taxonomy": [
+    {"id": "kernel",        "description": "Linux kernel messages (hardware, drivers, memory)"},
+    {"id": "systemd",       "description": "Service lifecycle events (start, stop, crash)"},
+    {"id": "executive",     "description": "Executive Module decision and belief events"},
+    {"id": "system_ops",    "description": "System Ops monitoring and update events"},
+    {"id": "llm",           "description": "LLM inference events (latency, tokens, errors)"},
+    {"id": "sensor",        "description": "External sensor data (camera, microphone, temperature)"},
+    {"id": "database",      "description": "PostgreSQL and MongoDB events"},
+    {"id": "network",       "description": "Network interface and connectivity events"}
+  ]
+}

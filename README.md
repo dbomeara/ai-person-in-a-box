@@ -247,9 +247,21 @@ ai-person-in-a-box/
 │   ├── entity-networking.md     # AI-to-AI communication via vector protocol
 │   └── career-trajectories.md  # Four vocational paths: child care, entertainer, artist, business
 │
-├── schemas/                     # Database structures (to be created)
-│   ├── sql/                     # PostgreSQL schemas
-│   └── json-schema/             # JSON definitions including foundation.json
+├── schemas/                     # Illustrative schemas (not production-ready)
+│   ├── sql/
+│   │   ├── ontology.sql         # 6-table ontology schema (PostgreSQL 16)
+│   │   └── belief_pipeline.sql  # NoSQL index, candidates, committed beliefs, queue
+│   └── json-schema/
+│       ├── foundation.json      # IMMUTABLE: primitive verbs, status codes, monitor streams
+│       ├── moral_grammar.json   # IMMUTABLE: accuracy/parsimony/homeostasis/integrity + seed morality
+│       └── personality_template.json  # 5 dimensions with initial distributions and nudge rules
+│
+├── src/                         # Illustrative Python (shows how it would work)
+│   ├── system_ops/
+│   │   └── log_translator.py    # Ubuntu systemd journal → internal JSON schema
+│   └── executive/
+│       ├── executive_module.py  # Core decision loop: perceive → believe → decide → act → log
+│       └── llm_interface.py     # LLM as tool: low-temp (reference) vs high-temp (imagination)
 │
 ├── conversation-archive/        # Development history
 │   ├── Claude-discussion.md     # Key philosophical discussions
